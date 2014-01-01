@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>FutaD</title>
+
+		<link rel="stylesheet" href="/static/nprogress.css" />
+		<link rel="stylesheet" href="/static/global.css" />
+		<script src="/static/jquery.js"></script>
+		<script src="/static/global.js"></script>
+		<script src="/static/nprogress.js"></script>
+	</head>
+
+	<body>
+		<div id="spinner" class="spinner" role="spinner"><div class="spinner-icon"></div></div>
+
+		<span class="header">FutaD</span>
+		<hr class="division" />
+
+		<div class="content">
+			I see you are watching episode <span class="dyn">{{ ep }}</span> of <span class="dyn">{{ title }}</span>, is that correct?
+		</div>
+
+		<div class="footer">
+			<a href="#" class="button blue small" onclick="yes()">Yes, exactly.</a>
+			<a href="#" class="button green small" onclick="diffep()">Different episode</a>
+			<a href="#" class="button green small" onclick="diffsrs()">Different series</a>
+			<a href="#" class="button red small" onclick="no()">No, I am not</a>
+		</div>
+
+	</body>
+</script>
