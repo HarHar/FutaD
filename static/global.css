@@ -39,6 +39,11 @@ body {
 	bottom: 5px !important;
 }
 
+.mutesmall {
+	color: #888;
+	font-size: 11px;
+}
+
 
 /* button 
 ---------------------------------------------- */

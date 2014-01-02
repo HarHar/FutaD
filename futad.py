@@ -11,6 +11,9 @@ import threading
 import time
 import gtk
 import webkit
+import psutil
+import fuzzywuzzy.process
+import parser
 
 #topkek
 devnull = open(os.devnull, 'w')
@@ -18,11 +21,57 @@ sys.stderr = devnull
 sys.stdout = devnull
 #######
 
+dbfile = sys.argv[-1]
+db = parser.Parser(dbfile)
+
+infoTable = {'title': '', 'ep': '', 'type': '', 'percent': '', 'others': [], 'pcolor': '', 'ecolor': ''}
+
+def findingThread(showCmd):
+	interval = 4
+	player = 'any'
+	filetypes = ['mkv', 'mp4']
+	seen = []
+
+	while True:
+		try:
+			processes = psutil.Process(1).get_children(recursive=True)
+			for process in processes:
+				if process.pid in seen:
+					if process.is_running() == False:
+						seen.remove(process.pid)
+					continue
+				if player != 'any':
+					if process.name[0].lower() != player.lower():
+						continue
+				for arg in process.cmdline:
+					db.reload()
+					for filetype in filetypes:
+						if arg.endswith(filetype):
+							titles = {}
+							for entry in db.dictionary['items']:
+								titles[entry['name']] = entry
+							guess = fuzzywuzzy.process.extractBests(arg.replace('_', ' '), titles)
+							infoTable['title'] = guess[0][0]
+							infoTable['percent'] = guess[0][1]
+							infoTable['type'] = titles[guess[0][0]]['type']
+							try:
+								infoTable['ep'] = str(int(titles[guess[0][0]]['lastwatched'])+1)
+							except:
+								infoTable['ep'] = 'unknown'
+							infoTable['pcolor'] = '#29d' if guess[0][1] > 60 else '#d81b21'
+							infoTable['ecolor'] = '#29d' if titles[guess[0][0]]['lastwatched'].isdigit() else '#d81b21'
+							seen.append(process.pid)
+							showCmd()
+							continue
+				seen.append(process.pid)
+			time.sleep(interval)
+		except psutil.NoSuchProcess: pass
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-	return render_template('home.html', title="Shinryaku! Ika Musume", ep="07")
+	return render_template('home.html', title=infoTable['title'], ep=infoTable['ep'], type=infoTable['type'],\
+	percent=infoTable['percent'], others=infoTable['others'], pcolor=infoTable['pcolor'], ecolor=infoTable['ecolor'])
 
 def showin():
     view = webkit.WebView() 
@@ -59,5 +108,11 @@ if __name__ == '__main__':
     app_thread.setDaemon(True)
     app_thread.start()
 
-    time.sleep(1)
-    showin()
+    finder_thread = threading.Thread(target=findingThread, args=(showin,))
+    finder_thread.setDaemon(True)
+    finder_thread.start()
+
+    while True:
+    	try:
+    		time.sleep(1)
+    	except KeyboardInterrupt, EOFError: os.kill(os.getpid(), 9)
