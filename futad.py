@@ -51,9 +51,9 @@ def findingThread():
                     if process.name[0].lower() != player.lower():
                         continue
                 for arg in process.cmdline:
-                    db.reload()
                     for filetype in filetypes:
                         if arg.endswith(filetype):
+                        	db.reload()
                             titles = {}
                             for entry in db.dictionary['items']:
                                 titles[entry['name']] = entry
