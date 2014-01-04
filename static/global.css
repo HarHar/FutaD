@@ -7,6 +7,7 @@ body {
 	user-select: none;
 
 	cursor: default;
+	outline: #fff dotted 0px;
 }
 
 .division {
@@ -42,6 +43,36 @@ body {
 .mutesmall {
 	color: #888;
 	font-size: 11px;
+}
+
+#diffEp {
+	display: none;
+	margin-left: 20px;
+	margin-right: 20px;
+	position: fixed;
+	top: 100px !important;
+}
+
+#diffSrs {
+	display: none;
+}
+
+input[type=text], textarea{ 
+    background: #fff; border:1px solid #990000;
+    border-color: #888;
+    width: 40px;
+    height: 14px;
+}
+
+.entry {
+	color: #29d;
+	margin-left: 22px;
+	cursor: pointer;
+}
+
+.entry:hover {
+	color: #fff;
+	background-color: #29d;
 }
 
 

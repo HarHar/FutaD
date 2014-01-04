@@ -6,7 +6,7 @@ if not ('--nodaemon' in sys.argv):
     if os.fork() != 0:
         exit()
 
-hide_output = False if '--help' in sys.argv else True
+hide_output = False if '--verbose' in sys.argv else True
 if hide_output:
     for fd in [0, 1, 2]:
         os.close(fd)
@@ -14,6 +14,8 @@ if hide_output:
     sys.stderr = devnull
     sys.stdout = devnull
     print 'akatsuki best girl'
+
+noanims = True if '--noanims' in sys.argv else False
 
 from flask import Flask, request, redirect, url_for, render_template
 import threading
@@ -29,7 +31,7 @@ db = parser.Parser(dbfile)
 
 global globalInfo
 infoTable = {'title': '', 'ep': '', 'type': '', 'percent': '', 'others': [], 'pcolor': '', 'ecolor': '', 'dbEntry': None}
-globalInfo = {'requestHide': False, 'requestShow': False, 'win': None, 'view': None, 'started': False, 'requestStop': False, 'db': db}
+globalInfo = {'requestHide': False, 'requestShow': False, 'win': None, 'view': None, 'started': False, 'requestStop': False, 'db': db, 'requestHeight': 0, 'requestReload': False}
 gtkstarted = False
 
 def findingThread():
@@ -71,6 +73,7 @@ def findingThread():
                             infoTable['pcolor'] = '#29d' if guess[0][1] > 60 else '#d81b21'
                             infoTable['ecolor'] = '#29d' if titles[guess[0][0]]['lastwatched'].isdigit() else '#d81b21'
                             infoTable['dbEntry'] = titles[guess[0][0]]
+                            infoTable['others'] = guess
                             seen.append(process.pid)
 
                             globalInfo['started'] = True
@@ -83,13 +86,45 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return render_template('home.html', title=infoTable['title'], ep=infoTable['ep'], type=infoTable['type'],\
-    percent=infoTable['percent'], others=infoTable['others'], pcolor=infoTable['pcolor'], ecolor=infoTable['ecolor'])
+    try:
+        global globalInfo, infoTable
+        globalInfo['requestHeight'] = 130
+        others = []
+        for guess in infoTable['others']:
+            if guess[0] != infoTable['title']:
+                others.append(guess)
+        return render_template('home.html', title=infoTable['title'], ep=infoTable['ep'], type=infoTable['type'],\
+        percent=infoTable['percent'], others=others, pcolor=infoTable['pcolor'], ecolor=infoTable['ecolor'],\
+        db=globalInfo['db'], noanims=str(noanims))
+    except Exception, e:
+        print str(e)
+        return 'Exception (' + str(e) + ')'
 
 @app.route('/no')
 def no():
     global globalInfo
     globalInfo['requestHide'] = True
+    return ''
+
+@app.route('/resizeTo_<h>')
+def grow(h):
+    global globalInfo
+    globalInfo['requestHeight'] = int(h)
+    return ''
+
+@app.route('/changeEp_<ep>')
+def changeEp(ep):
+    global globalInfo, infoTable
+    infoTable['ep'] = str(ep)
+    globalInfo['requestReload'] = True
+    return ''
+
+@app.route('/changeSrs_<srs>')
+def changeSrs(srs):
+    global globalInfo, infoTable
+    infoTable['title'] = srs
+    globalInfo['requestReload'] = True
+    return ''
 
 @app.route('/yes')
 def yes():
@@ -97,6 +132,7 @@ def yes():
     infoTable['dbEntry']['lastwatched'] = str(int(infoTable['dbEntry']['lastwatched']) + 1)
     globalInfo['db'].save()
     globalInfo['requestHide'] = True
+    return ''
 
 if __name__ == '__main__':
     app_thread = threading.Thread(target=app.run, args=('0.0.0.0', 8880,))
@@ -120,6 +156,7 @@ if __name__ == '__main__':
     screen = win.get_screen()
     screen_width, screen_height = screen.get_width(), screen.get_height()
     wsw, wsh = 575, 130
+    globalInfo['requestHeight'] = wsh
 
     win.add(sw) 
 
@@ -140,12 +177,23 @@ if __name__ == '__main__':
                 while gtk.events_pending():
                     gtk.main_iteration()
 
+                if globalInfo['requestHeight'] != wsh:
+                    if noanims:
+                        wsh = globalInfo['requestHeight']-1
+                    if globalInfo['requestHeight'] > wsh:
+                        wsh += 1
+                    else:
+                        wsh -= 1
+                    win.resize(wsw, wsh)
+                    win.move(screen_width-wsw, screen_height-wsh)
+                    continue
+
                 if globalInfo['requestStop']:
                     globalInfo['started'] = False
                     globalInfo['requestStop'] = False
 
                 if globalInfo['requestHide']:
-                    globalInfo['win'].hide()
+                    win.hide()
                     globalInfo['requestHide'] = False
 
                     #I had to do this because if we simply
@@ -161,9 +209,15 @@ if __name__ == '__main__':
                     globalInfo['requestStop'] = True
 
                 if globalInfo['requestShow']:
-                    globalInfo['view'].open('http://localhost:8880/')
-                    globalInfo['win'].show_all()
+                    view.open('http://localhost:8880/')
+                    win.show_all()
                     globalInfo['requestShow'] = False
-                time.sleep(.005)
+
+                if globalInfo['requestReload']:
+                    print 'Reloading'
+                    view.open('http://localhost:8880/')
+                    globalInfo['requestReload'] = False
+
+                time.sleep(.0001)
             else: time.sleep(1)
         except KeyboardInterrupt, EOFError: os.kill(os.getpid(), 9)

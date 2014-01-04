@@ -12,6 +12,7 @@
 	</head>
 
 	<body>
+		<input id="noanims" type="hidden" value="{{ noanims }}" />
 		<div id="spinner" class="spinner" role="spinner"><div class="spinner-icon"></div></div>
 
 		<span class="header">FutaD</span>
@@ -21,9 +22,23 @@
 			I am <span style="color: {{ pcolor }} !important;">{{ percent }}%</span> sure you are watching episode <span style="color: {{ ecolor }} !important">{{ ep }}</span> of <span class="dyn">{{ title }}</span>, is that correct?
 		</div>
 
+		<div id="diffEp">
+			<input type="text" value="{{ ep }}" id="epn" /><a href="#" class="button green small" onclick="doChangeEp();">done</a><a href="#" class="button orange small" onclick="cancelChEp();">cancel</a>
+		</div>
+
+		<div id="diffSrs">
+			<hr class="division" />
+			<div id="guesses">
+				{% for guess in others %}
+					<span class="entry" onclick="doDiffSrs(this);">{{ guess[0] }}</span> <span class="mutesmall">({{ guess[1] }}%)</span><br />
+				{% endfor %}
+				<a href="#" class="button green small" onclick="noneothese();" style="margin-left: 22px;">none of these</a><a href="#" class="button orange small" onclick="cancelChSrs();">cancel</a>
+			</div>
+		</div>
+
 		<div class="footer">
 			<a href="#" class="button blue small" onclick="yes()">Yes, exactly.</a>
-			<a href="#" class="button green small" onclick="diffep()">Different episode</a>
+			<a href="#" class="button green small" onclick="diffep()" id="de" s="0">Different episode</a>
 			<a href="#" class="button green small" onclick="diffsrs()">Different series</a>
 			<a href="#" class="button red small" onclick="no()">No, I am not</a>
 		</div>
