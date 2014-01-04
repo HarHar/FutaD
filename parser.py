@@ -22,22 +22,7 @@ from time import sleep
 import hashlib
 import time
 import copy
-from interfaces.common import utils
-
-def createDB(filename, dbtype='json', name='', description='', items=[]):
-	if dbtype in ['json'] == False:
-		raise Exception('Wrong db type')
-
-	if isinstance(items, list) == False: raise AssertionError
-	for item in items:
-		if isinstance(item, dict) == False: raise AssertionError
-
-	f = open(os.path.expanduser(os.path.expandvars(filename)), 'w')
-	f.write('[' + dbtype + ']\n')
-	tmp = {'name': name, 'description': description, 'count': len(items), 'items': items}
-	if dbtype == 'json':
-		f.write(json.dumps(tmp))
-	f.close()
+import utils
 
 class printHook(object):
 	"""Example hook that prints the changes made"""
