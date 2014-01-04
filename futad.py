@@ -8,12 +8,12 @@ if not ('--nodaemon' in sys.argv):
 
 hide_output = False if '--help' in sys.argv else True
 if hide_output:
-	for fd in [0, 1, 2]:
-		os.close(fd)
-	devnull = open(os.devnull, 'w')
-	sys.stderr = devnull
-	sys.stdout = devnull
-	print 'akatsuki best girl'
+    for fd in [0, 1, 2]:
+        os.close(fd)
+    devnull = open(os.devnull, 'w')
+    sys.stderr = devnull
+    sys.stdout = devnull
+    print 'akatsuki best girl'
 
 from flask import Flask, request, redirect, url_for, render_template
 import threading
@@ -28,8 +28,8 @@ dbfile = sys.argv[-1]
 db = parser.Parser(dbfile)
 
 global globalInfo
-infoTable = {'title': '', 'ep': '', 'type': '', 'percent': '', 'others': [], 'pcolor': '', 'ecolor': ''}
-globalInfo = {'requestHide': False, 'requestShow': False, 'win': None, 'view': None, 'started': False, 'requestStop': False}
+infoTable = {'title': '', 'ep': '', 'type': '', 'percent': '', 'others': [], 'pcolor': '', 'ecolor': '', 'dbEntry': None}
+globalInfo = {'requestHide': False, 'requestShow': False, 'win': None, 'view': None, 'started': False, 'requestStop': False, 'db': db}
 gtkstarted = False
 
 def findingThread():
@@ -54,12 +54,12 @@ def findingThread():
                 for arg in process.cmdline:
                     for filetype in filetypes:
                         if arg.endswith(filetype):
-                        	db.reload()
+                            db.reload()
                             titles = {}
                             for entry in db.dictionary['items']:
                                 titles[entry['name']] = entry
                             for replace in replaces:
-                            	arg = arg.replace(replace, replaces[replace]) #such replacing
+                                arg = arg.replace(replace, replaces[replace]) #such replacing
                             guess = fuzzywuzzy.process.extractBests(arg, titles)
                             infoTable['title'] = guess[0][0]
                             infoTable['percent'] = guess[0][1]
@@ -70,6 +70,7 @@ def findingThread():
                                 infoTable['ep'] = 'unknown'
                             infoTable['pcolor'] = '#29d' if guess[0][1] > 60 else '#d81b21'
                             infoTable['ecolor'] = '#29d' if titles[guess[0][0]]['lastwatched'].isdigit() else '#d81b21'
+                            infoTable['dbEntry'] = titles[guess[0][0]]
                             seen.append(process.pid)
 
                             globalInfo['started'] = True
@@ -89,7 +90,13 @@ def home():
 def no():
     global globalInfo
     globalInfo['requestHide'] = True
-    return ''
+
+@app.route('/yes')
+def yes():
+    global globalInfo, infoTable
+    infoTable['dbEntry']['lastwatched'] = str(int(infoTable['dbEntry']['lastwatched']) + 1)
+    globalInfo['db'].save()
+    globalInfo['requestHide'] = True
 
 if __name__ == '__main__':
     app_thread = threading.Thread(target=app.run, args=('0.0.0.0', 8880,))
@@ -134,7 +141,8 @@ if __name__ == '__main__':
                     gtk.main_iteration()
 
                 if globalInfo['requestStop']:
-                	globalInfo['started'] = False
+                    globalInfo['started'] = False
+                    globalInfo['requestStop'] = False
 
                 if globalInfo['requestHide']:
                     globalInfo['win'].hide()

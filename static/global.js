@@ -1,9 +1,9 @@
 function yes() {
-
+	$.get('/yes')
 }
 
 function no() {
-	$.get('/no'); //lol'd out loud
+	$.get('/no');
 }
 
 function diffsrs() {
