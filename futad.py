@@ -38,6 +38,7 @@ def findingThread():
     player = 'any'
     filetypes = ['mkv', 'mp4']
     seen = []
+    replaces = {'_': ' ', '-': ' '}
 
     while True:
         try:
@@ -57,7 +58,9 @@ def findingThread():
                             titles = {}
                             for entry in db.dictionary['items']:
                                 titles[entry['name']] = entry
-                            guess = fuzzywuzzy.process.extractBests(arg.replace('_', ' '), titles)
+                            for replace in replaces:
+                            	arg = arg.replace(replace, replaces[replace]) #such replacing
+                            guess = fuzzywuzzy.process.extractBests(arg, titles)
                             infoTable['title'] = guess[0][0]
                             infoTable['percent'] = guess[0][1]
                             infoTable['type'] = titles[guess[0][0]]['type']
