@@ -152,7 +152,7 @@ if __name__ == '__main__':
     sw = gtk.ScrolledWindow()
     sw.add(view)
 
-    win = gtk.Window(gtk.WINDOW_TOPLEVEL) 
+    win = gtk.Window(gtk.WINDOW_TOPLEVEL)
     screen = win.get_screen()
     screen_width, screen_height = screen.get_width(), screen.get_height()
     wsw, wsh = 575, 130
@@ -161,12 +161,15 @@ if __name__ == '__main__':
     win.add(sw) 
 
     win.set_default_size(wsw, wsh)
+    win.set_property('height-request', wsh)
+    win.set_property('width-request', wsw)
     win.connect('delete_event', gtk.main_quit)
     win.connect('destroy', gtk.main_quit)
 
     win.move(screen_width-wsw, screen_height-wsh)
     win.set_keep_above(True)
     win.set_decorated(False)
+    win.set_resizable(False)
 
     globalInfo['win'] = win
     globalInfo['view'] = view
@@ -186,6 +189,8 @@ if __name__ == '__main__':
                         wsh -= 1
                     win.resize(wsw, wsh)
                     win.move(screen_width-wsw, screen_height-wsh)
+                    win.set_property('height-request', wsh)
+                    win.set_property('width-request', wsw)
                     continue
 
                 if globalInfo['requestStop']:
