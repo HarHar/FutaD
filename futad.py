@@ -25,6 +25,7 @@ import webkit
 import psutil
 import fuzzywuzzy.process
 import parser
+import re
 
 dbfile = sys.argv[-1]
 db = parser.Parser(dbfile)
@@ -64,7 +65,20 @@ def findingThread():
                                 arg = arg.replace(replace, replaces[replace]) #such replacing
                             arg = os.path.basename(arg)
                             arg = os.path.splitext(arg)[0]
-                            guess = fuzzywuzzy.process.extractBests(arg, titles)
+                            arg = re.sub(r'\(.*?\)', '', arg)
+                            arg = re.sub(r'\[.*?\]', '', arg)
+                            guess = []
+                            for title in titles:
+                            	if title.lower() in arg.lower():
+                            		guess.append((title, 99))
+                            guess2 = fuzzywuzzy.process.extractBests(arg, titles)
+                            guess += guess2
+                            seen = []
+                            for g in guess:
+                            	if g[0] in seen:
+                            		guess.remove(g)
+                            	seen.append(g[0])
+                            guess = guess[:5]
                             infoTable['title'] = guess[0][0]
                             infoTable['percent'] = guess[0][1]
                             infoTable['type'] = titles[guess[0][0]]['type']
@@ -177,6 +191,7 @@ if __name__ == '__main__':
     win.set_title('FutaD')
     win.set_wmclass('futad', 'futad')
     win.set_role('futad')
+    win.set_focus(None)
 
     globalInfo['win'] = win
     globalInfo['view'] = view
