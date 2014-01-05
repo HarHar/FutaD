@@ -62,6 +62,8 @@ def findingThread():
                                 titles[entry['name']] = entry
                             for replace in replaces:
                                 arg = arg.replace(replace, replaces[replace]) #such replacing
+                            arg = os.path.basename(arg)
+                            arg = os.path.splitext(arg)[0]
                             guess = fuzzywuzzy.process.extractBests(arg, titles)
                             infoTable['title'] = guess[0][0]
                             infoTable['percent'] = guess[0][1]
