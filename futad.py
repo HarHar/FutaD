@@ -123,6 +123,8 @@ def changeEp(ep):
 def changeSrs(srs):
     global globalInfo, infoTable
     infoTable['title'] = srs
+    infoTable['percent'] = 100
+    infoTable['pcolor'] = '#29d'
     globalInfo['requestReload'] = True
     return ''
 
