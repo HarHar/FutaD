@@ -172,6 +172,9 @@ if __name__ == '__main__':
     win.set_keep_above(True)
     win.set_decorated(False)
     win.set_resizable(False)
+    win.set_title('FutaD')
+    win.set_wmclass('futad', 'futad')
+    win.set_role('futad')
 
     globalInfo['win'] = win
     globalInfo['view'] = view
