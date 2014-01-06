@@ -45,7 +45,7 @@ def findingThread():
 
     while True:
         try:
-            processes = psutil.Process(1).get_children(recursive=True)
+            processes = psutil.process_iter()
             for process in processes:
                 if player != 'any':
                     if process.name[0].lower() != player.lower():
