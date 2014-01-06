@@ -241,7 +241,6 @@ if __name__ == '__main__':
                     globalInfo['requestShow'] = False
 
                 if globalInfo['requestReload']:
-                    print 'Reloading'
                     view.open('http://localhost:8880/')
                     globalInfo['requestReload'] = False
 

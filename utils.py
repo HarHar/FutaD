@@ -305,7 +305,7 @@ class ANNWrapper(object):
 					rawfoundlings.append(item)
 
 			for found in process.extract(name, self.caches['ANN_id_cache'][stype], limit=10):
-				if found[1] >= 69:
+				if found[1] >= 60:
 					if found[0] in rawfoundlings:
 						continue
 					foundlings.append({'title': found[0], 'id': self.caches['ANN_id_cache'][stype][found[0]]})
