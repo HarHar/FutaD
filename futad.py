@@ -40,62 +40,61 @@ def findingThread():
     interval = 4
     player = 'any'
     filetypes = ['mkv', 'mp4']
-    seen = []
+    fileseen = []
     replaces = {'_': ' ', '-': ' '}
 
     while True:
         try:
             processes = psutil.Process(1).get_children(recursive=True)
             for process in processes:
-                if process.pid in seen:
-                    if process.is_running() == False:
-                        seen.remove(process.pid)
-                    continue
                 if player != 'any':
                     if process.name[0].lower() != player.lower():
                         continue
-                for arg in process.cmdline:
-                    for filetype in filetypes:
-                        if arg.endswith(filetype):
-                            db.reload()
-                            titles = {}
-                            for entry in db.dictionary['items']:
-                                titles[entry['name']] = entry
-                            for replace in replaces:
-                                arg = arg.replace(replace, replaces[replace]) #such replacing
-                            arg = os.path.basename(arg)
-                            arg = os.path.splitext(arg)[0]
-                            arg = re.sub(r'\(.*?\)', '', arg)
-                            arg = re.sub(r'\[.*?\]', '', arg)
-                            guess = []
-                            for title in titles:
-                            	if title.lower() in arg.lower():
-                            		guess.append((title, 99))
-                            guess2 = fuzzywuzzy.process.extractBests(arg, titles)
-                            guess += guess2
-                            seen = []
-                            for g in guess:
-                            	if g[0] in seen:
-                            		guess.remove(g)
-                            	seen.append(g[0])
-                            guess = guess[:5]
-                            infoTable['title'] = guess[0][0]
-                            infoTable['percent'] = guess[0][1]
-                            infoTable['type'] = titles[guess[0][0]]['type']
-                            try:
-                                infoTable['ep'] = str(int(titles[guess[0][0]]['lastwatched'])+1)
-                            except:
-                                infoTable['ep'] = 'unknown'
-                            infoTable['pcolor'] = '#29d' if guess[0][1] > 60 else '#d81b21'
-                            infoTable['ecolor'] = '#29d' if titles[guess[0][0]]['lastwatched'].isdigit() else '#d81b21'
-                            infoTable['dbEntry'] = titles[guess[0][0]]
-                            infoTable['others'] = guess
-                            seen.append(process.pid)
+                try:
+                    for openfile in process.get_open_files():
+                        if openfile[0] in fileseen: continue
+                        for filetype in filetypes:
+                            if openfile[0].endswith(filetype):
+                                fileseen.append(openfile[0])
+                                arg = openfile[0]
+                                db.reload()
+                                titles = {}
+                                for entry in db.dictionary['items']:
+                                    titles[entry['name']] = entry
+                                for replace in replaces:
+                                    arg = arg.replace(replace, replaces[replace]) #such replacing
+                                arg = os.path.basename(arg)
+                                arg = os.path.splitext(arg)[0]
+                                arg = re.sub(r'\(.*?\)', '', arg)
+                                arg = re.sub(r'\[.*?\]', '', arg)
+                                guess = []
+                                for title in titles:
+                                	if title.lower() in arg.lower():
+                                		guess.append((title, 99))
+                                guess2 = fuzzywuzzy.process.extractBests(arg, titles)
+                                guess += guess2
+                                seen = []
+                                for g in guess:
+                                	if g[0] in seen:
+                                		guess.remove(g)
+                                	seen.append(g[0])
+                                guess = guess[:5]
+                                infoTable['title'] = guess[0][0]
+                                infoTable['percent'] = guess[0][1]
+                                infoTable['type'] = titles[guess[0][0]]['type']
+                                try:
+                                    infoTable['ep'] = str(int(titles[guess[0][0]]['lastwatched'])+1)
+                                except:
+                                    infoTable['ep'] = 'unknown'
+                                infoTable['pcolor'] = '#29d' if guess[0][1] > 60 else '#d81b21'
+                                infoTable['ecolor'] = '#29d' if titles[guess[0][0]]['lastwatched'].isdigit() else '#d81b21'
+                                infoTable['dbEntry'] = titles[guess[0][0]]
+                                infoTable['others'] = guess
 
-                            globalInfo['started'] = True
-                            globalInfo['requestShow'] = True
-                            continue
-                seen.append(process.pid)
+                                globalInfo['started'] = True
+                                globalInfo['requestShow'] = True
+                                continue
+                except psutil.AccessDenied: pass
             time.sleep(interval)
         except psutil.NoSuchProcess: pass
 app = Flask(__name__)
@@ -238,6 +237,7 @@ if __name__ == '__main__':
                 if globalInfo['requestShow']:
                     view.open('http://localhost:8880/')
                     win.show_all()
+                    win.move(screen_width-wsw, screen_height-wsh)
                     globalInfo['requestShow'] = False
 
                 if globalInfo['requestReload']:
