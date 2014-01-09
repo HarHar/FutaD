@@ -76,8 +76,10 @@ def findingThread():
                                 for title in titles:
                                 	if title.lower() in arg.lower():
                                 		guess.append((title, 99))
-                                guess2 = fuzzywuzzy.process.extractBests(arg, titles)
-                                guess += guess2
+                                guess += fuzzywuzzy.process.extractBests(arg, titles)
+                                if int(guess[0][1]) < 86:
+                                    break
+
                                 seen = []
                                 for g in guess:
                                 	if g[0] in seen:
