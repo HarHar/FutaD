@@ -26,6 +26,8 @@ import psutil
 import fuzzywuzzy.process
 import parser
 import re
+import utils
+import traceback
 
 dbfile = sys.argv[-1]
 db = parser.Parser(dbfile)
@@ -34,6 +36,9 @@ global globalInfo
 infoTable = {'title': '', 'ep': '', 'type': '', 'percent': '', 'others': [], 'pcolor': '', 'ecolor': '', 'dbEntry': None}
 globalInfo = {'requestHide': False, 'requestShow': False, 'win': None, 'view': None, 'started': False, 'requestStop': False, 'db': db, 'requestHeight': 0, 'requestReload': False}
 gtkstarted = False
+
+ANN = utils.ANNWrapper()
+ANN.init()
 
 def findingThread():
     global globalInfo
@@ -100,6 +105,10 @@ def findingThread():
 app = Flask(__name__)
 
 @app.route('/')
+def loading():
+    return render_template('loading.html', noanims=str(noanims))
+
+@app.route('/main')
 def home():
     try:
         global globalInfo, infoTable
@@ -108,10 +117,19 @@ def home():
         for guess in infoTable['others']:
             if guess[0] != infoTable['title']:
                 others.append(guess)
+
+        entryDetails = ANN.details(infoTable['dbEntry']['aid'], infoTable['dbEntry']['type'])
+        epName = ''
+        for epn in entryDetails['episode_names']:
+            if epn.isdigit() and infoTable['ep'].isdigit():
+                if int(epn) == int(infoTable['ep']):
+                    epName = entryDetails['episode_names'][epn]
+
         return render_template('home.html', title=infoTable['title'], ep=infoTable['ep'], type=infoTable['type'],\
         percent=infoTable['percent'], others=others, pcolor=infoTable['pcolor'], ecolor=infoTable['ecolor'],\
-        db=globalInfo['db'], noanims=str(noanims))
+        db=globalInfo['db'], noanims=str(noanims), epname=epName)
     except Exception, e:
+        traceback.print_exc()
         print str(e)
         return 'Exception (' + str(e) + ')'
 
