@@ -20,9 +20,6 @@ noanims = True if '--noanims' in sys.argv else False
 from flask import Flask, request, redirect, url_for, render_template
 import threading
 import time
-#import gtk
-#import webkit
-
 from gi.repository import Gtk, GdkPixbuf, Gdk
 gtk = Gtk
 from gi.repository import WebKit
@@ -82,8 +79,6 @@ def findingThread():
                                 for title in titles:
                                 	if title.lower() in arg.lower():
                                 		guess.append((title, 99))
-                                print('-- ' + repr(arg))
-                                print('-- ' + repr(titles))
                                 guess += fuzzywuzzy.process.extractBests(arg, titles.keys())
                                 if int(guess[0][1]) < 86:
                                     break
