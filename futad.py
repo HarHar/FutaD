@@ -2,7 +2,7 @@
 import os
 import sys
 if not ('--nodaemon' in sys.argv):
-    print 'Forking..'
+    print('Forking..')
     if os.fork() != 0:
         exit()
 
@@ -13,15 +13,21 @@ if hide_output:
     devnull = open(os.devnull, 'w')
     sys.stderr = devnull
     sys.stdout = devnull
-    print 'akatsuki best girl'
+    print('akatsuki best girl')
 
 noanims = True if '--noanims' in sys.argv else False
 
 from flask import Flask, request, redirect, url_for, render_template
 import threading
 import time
-import gtk
-import webkit
+#import gtk
+#import webkit
+
+from gi.repository import Gtk, GdkPixbuf, Gdk
+gtk = Gtk
+from gi.repository import WebKit
+webkit = WebKit
+
 import psutil
 import fuzzywuzzy.process
 import parser
@@ -76,7 +82,9 @@ def findingThread():
                                 for title in titles:
                                 	if title.lower() in arg.lower():
                                 		guess.append((title, 99))
-                                guess += fuzzywuzzy.process.extractBests(arg, titles)
+                                print('-- ' + repr(arg))
+                                print('-- ' + repr(titles))
+                                guess += fuzzywuzzy.process.extractBests(arg, titles.keys())
                                 if int(guess[0][1]) < 86:
                                     break
 
@@ -130,10 +138,9 @@ def home():
         return render_template('home.html', title=infoTable['title'], ep=infoTable['ep'], type=infoTable['type'],\
         percent=infoTable['percent'], others=others, pcolor=infoTable['pcolor'], ecolor=infoTable['ecolor'],\
         db=globalInfo['db'], noanims=str(noanims), epname=epName)
-    except Exception, e:
+    except Exception:
         traceback.print_exc()
-        print str(e)
-        return 'Exception (' + str(e) + ')'
+        return 'Exception :c'
 
 @app.route('/no')
 def no():
@@ -189,7 +196,7 @@ if __name__ == '__main__':
     sw = gtk.ScrolledWindow()
     sw.add(view)
 
-    win = gtk.Window(gtk.WINDOW_TOPLEVEL)
+    win = gtk.Window()
     screen = win.get_screen()
     screen_width, screen_height = screen.get_width(), screen.get_height()
     wsw, wsh = 575, 130
@@ -266,4 +273,7 @@ if __name__ == '__main__':
 
                 time.sleep(.0001)
             else: time.sleep(1)
-        except KeyboardInterrupt, EOFError: os.kill(os.getpid(), 9)
+        except KeyboardInterrupt:
+            os.kill(os.getpid(), 9)
+        except EOFError:
+            os.kill(os.getpid(), 9)
